@@ -1,0 +1,7 @@
+node_modules/
+package/
+*.tgz
+.research/
+test-results/
+site/vendor/
+site/game/

@@ -1,0 +1,15 @@
+{
+  "name": "simant-together",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node scripts/serve.mjs",
+    "prepare:vendor": "node scripts/vendor.mjs",
+    "check": "node --check site/app.js && node --check site/dos.js",
+    "test:browser": "node tests/browser.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1",
+    "emulators": "8.5.2"
+  }
+}

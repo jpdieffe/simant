@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#17251c">
+  <link rel="icon" href="data:,">
+  <title>SimAnt · Original DOS game</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="vendor/emulators.js"></script>
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <header><a href="./" class="brand">SimAnt<span>The electronic ant colony</span></a><span class="badge">Original DOS edition</span></header>
+  <main>
+    <section id="intro">
+      <span class="eyebrow">A small world. A big adventure.</span>
+      <h1>Back to the colony.</h1>
+      <p>Explore the yard, gather food, and lead your ants in the original SimAnt.</p>
+      <button id="start" class="primary">Play original game</button>
+      <p class="note">Single-player preview. Two-player ants and independent cameras are not implemented yet.</p>
+    </section>
+    <section id="player" hidden>
+      <div class="toolbar"><span id="status" role="status">Starting DOS…</span><button id="sound">Sound on</button><button id="fullscreen">Full screen</button></div>
+      <div class="screen"><canvas id="game" width="640" height="350" tabindex="0" aria-label="SimAnt game. Tap to click; hold for the ant menu."></canvas></div>
+      <div class="controls" aria-label="Game controls">
+        <button data-key="256">Esc</button><button data-key="257">Enter</button><button data-key="259">Find ant</button><button id="right-click">Right click: off</button><button id="save">Save files</button><label class="button">Load files<input id="load" type="file" accept=".zip,.jsdos" hidden></label>
+      </div>
+      <p class="hint">Tap where you want your ant to go. Hold on your ant to open its menu. On a phone, turn sideways for a larger view. Save inside the game, then use “Save files” to download your progress.</p>
+    </section>
+  </main>
+  <footer>Original game runs on your device · DOSBox via <a href="https://github.com/js-dos/emulators">js-dos emulators</a></footer>
+</body>
+</html>
