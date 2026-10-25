@@ -31,6 +31,14 @@ export class SimAntMemory {
   word(address,value){if(value!==undefined){this.ram[address]=value&255;this.ram[address+1]=(value>>8)&255;}return this.ram[address]|(this.ram[address+1]<<8);}
   get globals(){const segment=this.word(this.ds+0x8952);if(segment<0x100||segment>0x9000)throw new Error('Invalid SimAnt globals segment.');return segment*16;}
   ant(){const b=this.globals;return {x:this.word(b+0x47c),y:this.word(b+0x48a),layer:this.word(b+0x48c),direction:this.word(b+0x496),body:this.word(b+0x4c2)};}
+  autoTrack(enabled){
+    // The original yellow-ant mover checks this option before recentering.
+    // Options live in their own segment, not the colony's globals segment.
+    const segment=this.word(this.ds+0x897e),address=segment*16+0x7a8;
+    if(segment<0x100||segment>0x9000||this.word(address)>1)throw new Error('The original camera setting is not ready.');
+    if(enabled!==undefined)this.word(address,enabled?1:0);
+    return this.word(address)===1;
+  }
   async until(test,timeout=60000){const start=performance.now();let notified=false;try{while(!test()){const elapsed=performance.now()-start;if(elapsed>1500&&!notified){notified=true;this.onWait?.(true);}if(elapsed>timeout)throw new Error('The original game did not reach the expected update boundary.');await delay(5);}}finally{if(notified)this.onWait?.(false);}}
   async installGate(){
     if(this.gate)return;

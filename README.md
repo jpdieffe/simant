@@ -16,6 +16,10 @@ The supplied archive is preserved byte-for-byte in `assets/simant.zip`; this is 
 
 The host must keep the game tab visible. Guest disconnects release held controls; reconnecting to the same room retains the second ant during ordinary co-op play. A room accepts two players.
 
+## Solo camera
+
+Solo play and hosts awaiting a friend enable the original **AutoTrack** setting when a colony starts. The camera follows the ant as it walks, so you can keep clicking farther across the map instead of getting stuck at the visible screen edge. **Follow ant: on/off** toggles that same original setting; the DOS Options ? AutoTrack menu remains usable.
+
 ## Current limits
 
 This is an experimental original-game modification, not a fully validated multiplayer port. Separate movement, native underground/surface travel, distinct views, shared simulation timing, audio/video, disconnect/rejoin, and returning from original menus have automated browser coverage. Combat, ant death/replacement, recruitment, long campaigns, and every original-game interaction have **not** been validated for two human ants. Full Game founding queens are kept in the original interface: establish the nest and switch to a worker before co-op can attach. Full Game co-op beyond that point remains unverified. The original executable assumes one yellow player marker; those systems may still behave incorrectly with two.
@@ -48,6 +52,7 @@ Open http://127.0.0.1:4173. Pinned runtime/game files are copied into ignored `s
 npm run check
 npm test
 npm run test:browser
+npm run test:solo-camera
 npm run test:colony
 npm run test:network
 ```

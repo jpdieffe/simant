@@ -53,3 +53,7 @@ Original native actor maps use a single `0xff` yellow marker, with `0xfe` for a 
 The original interface remains available through Game controls. The host owns original menus and global-square changes. A guest can move within the current patch and its layers, but cannot independently occupy a different global square. Full campaign completion and physical Android/iOS host performance are not verified.
 
 A Full Game founding-queen experiment spawned a second ant but reached an unexpected Game Over during updates. Co-op therefore refuses queen/founding bodies and leaves the original game running until the host selects a worker or soldier. This is a compatibility restriction, not a claim that the founding stage supports two players.
+
+## Solo AutoTrack
+
+The original movement routine checks option `7a8` through the segment pointer at `DS:897e`, then calls the original recentering routine after movement. This is a separate options segment, not the colony globals segment. Toggling Options ? AutoTrack in the DOS menu confirmed the field. The browser enables it once on colony startup and exposes Follow ant to toggle it; subsequent native-menu changes are reflected, not overwritten. No solo movement or camera renderer is replaced. `tests/solo-camera.mjs` uses real mouse clicks to leave the nest and walk beyond the starting screen, asserting that the native view origin follows.

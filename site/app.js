@@ -6,13 +6,13 @@ import {parseRoomCode} from './protocol.js';
 const $=selector=>document.querySelector(selector),canvas=$('#game'),local=$('#local-view'),video=$('#remote-video');
 const guestCanvas=document.createElement('canvas');guestCanvas.width=352;guestCanvas.height=320;
 const game=new DosGame(canvas,status);let room,colony,mode='lobby',busy=false,startingCoop=false,menu=false,stream,lastCode,remoteView,remotePlayer,wakeLock,readyTimer;
-let right=false,activePointer=null,activeButton=0;const held=new Set(),directions=new Map();
+let right=false,activePointer=null,activeButton=0,cameraReady=false;const held=new Set(),directions=new Map();
 function status(message){$('#status').textContent=message;$('#lobby-status').textContent=message;}
 function failure(error){status(error?.message||String(error));if(mode==='guest'){$('#retry').hidden=false;$('#overlay').hidden=false;$('#overlay').textContent=error?.message||String(error);}}
 function settings(){return {turn:$('#turn').value.trim(),username:$('#turn-user').value,credential:$('#turn-password').value,host:$('#peer-host').value.trim(),path:$('#peer-path').value.trim()||'/'};}
 async function wake(){try{wakeLock=await navigator.wakeLock?.request('screen');}catch{}}
 function showPlayer(){document.body.classList.add('playing');$('#intro').hidden=true;$('#player').hidden=false;wake();}
-function coopUI(active){document.body.classList.toggle('coop',active);canvas.hidden=active||mode==='guest';local.hidden=!active||mode==='guest';video.hidden=mode!=='guest';$('#original-controls').hidden=active||mode==='guest';$('#coop-controls').hidden=!active;$('#game-menu').hidden=mode==='guest';$('#ant-name').textContent=mode==='guest'?'Ant two':'Ant one';$('#hint').textContent=active?'Tap the ground to move, or use the arrows / WASD. Your friend has their own ant and view.':'Choose a game in SimAnt. Hold on your ant for its original menu. Game controls pauses co-op while the host uses the original interface.';}
+function coopUI(active){document.body.classList.toggle('coop',active);canvas.hidden=active||mode==='guest';local.hidden=!active||mode==='guest';video.hidden=mode!=='guest';$('#original-controls').hidden=active||mode==='guest';$('#coop-controls').hidden=!active;$('#game-menu').hidden=mode==='guest';$('#ant-name').textContent=mode==='guest'?'Ant two':'Ant one';$('#hint').textContent=active?'Tap the ground to move, or use the arrows / WASD. Your friend has their own ant and view.':'Follow ant keeps the original camera with your ant as it walks. Turn it off to look around. Hold on your ant for its original menu.';}
 function placeholder(message){const c=guestCanvas.getContext('2d');c.fillStyle='#17251c';c.fillRect(0,0,352,320);c.fillStyle='#d8e6bb';c.font='16px system-ui';c.textAlign='center';c.fillText(message,176,150);}
 function sendStream(){if(!room?.accepted||!game.ci)return;stream?.getVideoTracks().forEach(t=>t.stop());stream=guestCanvas.captureStream(12);for(const track of game.audioStream.stream.getAudioTracks())stream.addTrack(track);room.stream(stream);}
 function updateHUD(player,view){if(!player)return;$('#health').textContent=`Health ${player.health}`;$('#location').textContent=view?.layer===1?'On the surface':view?.layer===2?'Black nest':'Red nest';}
@@ -27,7 +27,21 @@ function createRoom(){const instance=new Room({
   mediaClosed:()=>{if(mode==='guest')failure('The game stream stopped. Tap Retry to reconnect.');}
 },settings());return instance;}
 async function hostRoom(){mode='host';placeholder('Waiting for the host’s colony…');room=createRoom();const code=await room.open(true);$('#code').textContent=code;$('#room-label').hidden=false;$('#invite').hidden=false;$('#open-room').hidden=true;status(`Room ${code} is open. Choose a game, then your friend can join.`);}
-async function start(wanted='solo',savedFiles){if(busy)return;busy=true;mode=wanted;showPlayer();coopUI(false);try{await game.start(savedFiles);canvas.focus();if(wanted==='host'&&!room)await hostRoom();else if(wanted==='host'&&room?.accepted){menu=false;sendStream();activateWhenReady();}}catch(error){failure(error);$('#intro').hidden=false;}finally{busy=false;}}
+async function start(wanted='solo',savedFiles){if(busy)return;busy=true;mode=wanted;showPlayer();coopUI(false);try{cameraReady=false;await game.start(savedFiles);canvas.focus();if(wanted==='host'&&!room)await hostRoom();else if(wanted==='host'&&room?.accepted){menu=false;sendStream();activateWhenReady();}}catch(error){failure(error);$('#intro').hidden=false;}finally{busy=false;}}
+// Enable SimAnt's own AutoTrack for solo play and hosts awaiting a friend.
+// Afterwards reflect the native option, so changes in the DOS menu still work.
+function updateCameraControl(){
+  if(!game.ci||mode==='guest')return;
+  try{
+    const mem=game.memoryBridge??=new SimAntMemory(game.ci),ant=mem.ant();
+    if(ant.layer<1||ant.layer>3)return;
+    if(!cameraReady){mem.autoTrack(true);cameraReady=true;}
+    const enabled=mem.autoTrack(),button=$('#follow-ant');
+    button.disabled=false;button.textContent=`Follow ant: ${enabled?'on':'off'}`;button.setAttribute('aria-pressed',String(enabled));
+  }catch{$('#follow-ant').disabled=true;}
+}
+setInterval(updateCameraControl,500);
+$('#follow-ant').onclick=()=>{try{const mem=game.memoryBridge;mem.autoTrack(!mem.autoTrack());updateCameraControl();canvas.focus();}catch(error){failure(error);}};
 function activateWhenReady(){clearInterval(readyTimer);const check=async()=>{
   if(startingCoop||colony||menu||!room?.accepted||!game.ci)return;
   try{const mem=game.memoryBridge??=new SimAntMemory(game.ci),ant=mem.ant();if(ant.layer<1||ant.layer>3||mem.word(mem.globals+0xf78)<=0)return;
