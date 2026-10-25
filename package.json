@@ -5,11 +5,15 @@
   "scripts": {
     "start": "node scripts/serve.mjs",
     "prepare:vendor": "node scripts/vendor.mjs",
-    "check": "node --check site/app.js && node --check site/dos.js",
-    "test:browser": "node tests/browser.mjs"
+    "check": "node scripts/check.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "test:browser": "node tests/browser.mjs",
+    "test:colony": "node tests/colony.mjs",
+    "test:network": "node tests/network.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.56.1",
-    "emulators": "8.5.2"
+    "emulators": "8.5.2",
+    "peerjs": "1.5.5"
   }
 }
