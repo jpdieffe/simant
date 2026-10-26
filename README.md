@@ -16,6 +16,12 @@ The supplied archive is preserved byte-for-byte in `assets/simant.zip`; this is 
 
 The host must keep the game tab visible. Guest disconnects release held controls; reconnecting to the same room retains the second ant during ordinary co-op play. A room accepts two players.
 
+## All four original panels
+
+Solo play opens a layout with a large colony view, Map, Behavior, and Caste visible together. The original main window is expanded to show more tiles. Map buttons and both triangles remain interactive: click or tap the map, or drag a triangle to change the original colony settings. Landscape phones put the triangles side by side beneath the map; portrait phones stack the management panels below the main view.
+
+**Original desktop** returns to the complete DOS desktop for its menus and dialogs; **All panels** restores this layout. Function-key menus open in the original desktop; blocking DOS dialogs also bring it forward automatically. During co-op, the host can use **Game controls** for the four-panel layout, then **Resume co-op** to return to the two independent ant views. The guest's movement view is unchanged.
+
 ## Solo camera
 
 Solo play and hosts awaiting a friend enable the original **AutoTrack** setting when a colony starts. The camera follows the ant as it walks, so you can keep clicking farther across the map instead of getting stuck at the visible screen edge. **Follow ant: on/off** toggles that same original setting; the DOS Options ? AutoTrack menu remains usable.
@@ -52,6 +58,7 @@ Open http://127.0.0.1:4173. Pinned runtime/game files are copied into ignored `s
 npm run check
 npm test
 npm run test:browser
+npm run test:desktop
 npm run test:solo-camera
 npm run test:colony
 npm run test:network

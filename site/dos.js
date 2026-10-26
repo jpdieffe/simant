@@ -3,7 +3,7 @@ const dosboxConf = `[sdl]\nfullscreen=false\n[dosbox]\nmachine=svga_s3\nmemsize=
 export class DosGame {
   constructor(canvas, status) {
     this.canvas=canvas; this.status=status; this.context=canvas.getContext('2d',{alpha:false});
-    this.audio=null;this.nextAudio=0;this.nodes=new Set();this.muted=false;this.frameNumber=0;
+    this.audio=null;this.nextAudio=0;this.nodes=new Set();this.muted=false;this.frameNumber=0;this.frameListeners=new Set();
   }
   async start(savedFiles) {
     this.audio=new AudioContext();
@@ -27,6 +27,7 @@ export class DosGame {
       else return;
       this.context.putImageData(this.frame,0,0);
       this.frameNumber++;
+      for(const listener of this.frameListeners)listener();
     });
     this.ci.events().onSoundPush(samples=>this.sound(samples));
     this.ci.events().onMessage((type,...args)=>{if(type==='panic')this.status(args.join(' '));});

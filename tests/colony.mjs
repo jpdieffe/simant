@@ -7,7 +7,7 @@ const server=createServer(4183),browser=await chromium.launch({channel:'chrome',
 try{
   const page=await browser.newPage({viewport:{width:1100,height:850}}),errors=[];
   page.on('pageerror',e=>errors.push(e.message));
-  await page.goto('http://127.0.0.1:4183/?debug&memory');await page.locator('#start').click();
+  await page.goto('http://127.0.0.1:4183/?desktop=original&debug&memory');await page.locator('#start').click();
   await page.waitForFunction(()=>window.__simant?.game.ci,{},{timeout:60000});await page.waitForTimeout(5000);
   const r=await page.locator('#game').boundingBox();
   for(const[x,y]of [[320,240],[320,280],[360,160]]){await page.mouse.click(r.x+x,r.y+y,{delay:120});await page.waitForTimeout(700);}

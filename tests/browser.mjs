@@ -9,7 +9,7 @@ try {
   const page=await browser.newPage({viewport:{width:1280,height:850}});
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
   page.on('console',msg=>{if(msg.type()==='error')console.log('Browser:',msg.text());});
-  await page.goto('http://127.0.0.1:4182/?debug');
+  await page.goto('http://127.0.0.1:4182/?desktop=original&debug');
   await page.locator('#start').click();
   await page.waitForFunction(()=>window.__simant?.game.ci,{},{timeout:60000});
   await page.waitForFunction(async()=> ((await window.__simant.game.ci.getRunningProgram())||'').toLowerCase().includes('simant'),{},{timeout:60000});
@@ -36,7 +36,7 @@ try {
   }
   console.log('Original DOS boot and mobile layout checks passed.');
   const full=await browser.newPage({viewport:{width:1100,height:850}});
-  await full.goto('http://127.0.0.1:4182/?debug');await full.locator('#start').click();
+  await full.goto('http://127.0.0.1:4182/?desktop=original&debug');await full.locator('#start').click();
   await full.waitForFunction(()=>window.__simant?.game.ci,{},{timeout:60000});await full.waitForTimeout(5000);
   const rect=await full.locator('#game').boundingBox();
   for(const[x,y]of[[320,240],[320,280],[300,230]]){await full.mouse.click(rect.x+x,rect.y+y,{delay:120});await full.waitForTimeout(700);}

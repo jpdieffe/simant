@@ -12,7 +12,7 @@ try{
  const code=await host.locator('#code').textContent();assert.equal(code.length,2);console.log('Room',code);
  await host.waitForTimeout(5000);const bounds=await host.locator('#game').boundingBox();
  for(const[x,y]of[[320,240],[320,280],[360,160]]){await host.mouse.click(bounds.x+x,bounds.y+y,{delay:120});await host.waitForTimeout(700);}
- await host.waitForTimeout(1000);
+ await host.waitForFunction(()=>window.__simant.desktop?.running,{},{timeout:30000});
  await guest.goto(`http://127.0.0.1:4184/?debug#room=${code}`);await guest.locator('#join-button').click();
  await host.waitForTimeout(8000);
  console.log('Connection state',await host.evaluate(()=>({status:document.querySelector('#status').textContent,accepted:window.__simant.room?.accepted,colony:!!window.__simant.colony,running:window.__simant.colony?.running,players:window.__simant.colony?.players.map((_,i)=>window.__simant.colony.info(i)),views:window.__simant.colony?.views})),await guest.locator('#status').textContent());
@@ -47,7 +47,7 @@ try{
  await host.screenshot({path:'test-results/rejoin-failure-host.png',fullPage:true});await rejoin.screenshot({path:'test-results/rejoin-failure-guest.png',fullPage:true});throw error;}
  const restored=await host.evaluate(()=>window.__simant.colony.info(1));assert.equal(restored.layer,position.layer);assert.equal(restored.x,position.x);assert.equal(restored.y,position.y);console.log('Disconnect stops input; rejoin preserves the second ant');
  assert.deepEqual(errors,[]);
- await host.locator('#game-menu').click();await host.waitForFunction(()=>!window.__simant.colony);await host.waitForTimeout(500);
+ await host.locator('#game-menu').click();await host.waitForFunction(()=>!window.__simant.colony&&window.__simant.desktop?.running,{},{timeout:30000});
  await host.locator('#resume-coop').click();await host.waitForFunction(()=>window.__simant.colony?.players[1]&&window.__simant.colony.views[1],{},{timeout:30000});console.log('Original game controls and co-op resume passed');
  console.log('Real two-browser WebRTC, independent views, mobile controls, media and recovery checks passed');
 }finally{await browser.close();await new Promise(resolve=>server.close(resolve));}

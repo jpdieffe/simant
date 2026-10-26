@@ -82,9 +82,10 @@ export class SimAntMemory {
     return {segment,ant:this.ant()};
   }
   async step(){if(!this.gate)throw new Error('No simulation gate installed.');const count=this.word(this.gate+0x20);this.ram[this.gate+0x22]=0;await this.until(()=>this.ram[this.gate+0x22]===1&&this.word(this.gate+0x20)!==count);return this.ant();}
-  async call(relativeSegment,offset,args=[]){
+  async call(relativeSegment,offset,args=[],ax){
     if(!this.gate||this.ram[this.gate+0x22]!==1||args.length>6)throw new Error('Native calls require a stopped update boundary and at most six arguments.');
     const code=[0x50,0x53,0x51,0x52,0x56,0x57,0x55,0x06,0x1e];
+    if(ax!==undefined){if(!Number.isInteger(ax)||ax<0||ax>65535)throw new Error('Invalid native AX argument.');code.push(0xb8,ax&255,ax>>8);}
     for(const arg of [...args].reverse())code.push(0x68,arg&255,(arg>>8)&255);
     const segment=this.load+relativeSegment;
     code.push(0x9a,offset&255,offset>>8,segment&255,segment>>8,0x83,0xc4,args.length*2,
