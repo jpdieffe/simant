@@ -58,6 +58,7 @@ Open http://127.0.0.1:4173. Pinned runtime/game files are copied into ignored `s
 npm run check
 npm test
 npm run test:browser
+npm run test:audio
 npm run test:desktop
 npm run test:solo-camera
 npm run test:colony
@@ -72,3 +73,13 @@ Browser tests use installed Google Chrome through Playwright. Network tests exer
 - [js-dos emulators 8.5.2](https://github.com/js-dos/emulators), GPL-2.0. Its pinned distribution and license are copied into `site/vendor/`. [Runtime API](https://js-dos.com/command-interface.html).
 - [PeerJS 1.5.5](https://github.com/peers/peerjs), MIT; its license is copied alongside the runtime.
 - Playwright 1.56.1 for browser verification.
+
+## Browser audio
+
+The pinned emulator emits mono Float32 PCM. One input sample is one audio frame; it must not be split into alternating stereo channels. `audio.js` sends complete chunks to one persistent AudioWorklet rather than creating a short-lived stereo source for every chunk. Device-rate conversion preserves the original pitch.
+
+SimAnt starts playback with 300 ms of queued audio. The overlap/add queue adapts to emulator timing drift without changing pitch and smooths a restart after a genuine interruption. The implementation is adapted from the GPL-2.0 audio worklet in emulators 8.5.2 (`src/dos/dosbox/ts/audio-worklet.ts`); attribution is retained in `site/pcm-queue.js`. A mono scheduled-buffer fallback handles browsers without AudioWorklet. Mute uses a gain control; suspending/closing discards stale buffers.
+
+`npm run test:audio` runs the original game in a phone-sized Chrome viewport with 4x CPU throttling and deliberate 90 ms UI delays. It checks PCM delivery, queue underruns/overflows, mute and cleanup using counters, so working speakers or sound drivers are unnecessary. Unit tests verify duration and pitch at 44.1/48 kHz and sustained clock drift. Set `GAME_URL` to the deployed URL to run the same browser check against GitHub Pages.
+
+The corrected worklet also supplies the guest media stream, before the host's local mute control. The network test checks actual decoded audio samples at the guest.

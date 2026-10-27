@@ -36,6 +36,16 @@ try{
  await guest.locator('#sound').tap();
  const tracks=await guest.evaluate(()=>({audio:document.querySelector('#remote-video').srcObject.getAudioTracks().length,video:document.querySelector('#remote-video').srcObject.getVideoTracks().length,muted:document.querySelector('#remote-video').muted}));
  assert.equal(tracks.audio,1);assert.equal(tracks.video,1);assert.equal(tracks.muted,false);
+ await host.evaluate(()=>{window.__simant.game.muted=true;});
+ const audioPeak=await guest.evaluate(async()=>{
+  const context=new AudioContext();await context.resume();const source=context.createMediaStreamSource(document.querySelector('#remote-video').srcObject);
+  const analyser=context.createAnalyser(),gain=context.createGain();gain.gain.value=0;source.connect(analyser);analyser.connect(gain);gain.connect(context.destination);
+  const samples=new Float32Array(analyser.fftSize);let peak=0;
+  for(let i=0;i<15;i++){await new Promise(r=>setTimeout(r,100));analyser.getFloatTimeDomainData(samples);for(const value of samples)peak=Math.max(peak,Math.abs(value));}
+  source.disconnect();await context.close();return peak;
+ });
+ assert.ok(audioPeak>1e-5,'guest receives decoded, non-silent game audio even when the host mutes locally');
+ await host.evaluate(()=>{window.__simant.game.muted=false;});console.log('Decoded guest audio peak',audioPeak);
  await host.screenshot({path:'test-results/network-host.png',fullPage:true});await guest.screenshot({path:'test-results/network-guest-phone.png',fullPage:true});
  const third=await browser.newPage();await third.goto(`http://127.0.0.1:4184/#room=${code}`);await third.locator('#join-button').click();await third.waitForFunction(()=>document.querySelector('#status').textContent.includes('already has two'),{},{timeout:30000});await third.close();console.log('Third player rejected');
  // Verify lost connection releases a held direction and the same ant can rejoin.

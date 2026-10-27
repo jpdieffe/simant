@@ -11,7 +11,8 @@
     "test:desktop": "node tests/desktop.mjs",
     "test:solo-camera": "node tests/solo-camera.mjs",
     "test:colony": "node tests/colony.mjs",
-    "test:network": "node tests/network.mjs"
+    "test:network": "node tests/network.mjs",
+    "test:audio": "node tests/audio.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.56.1",

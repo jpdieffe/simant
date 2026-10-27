@@ -1,14 +1,17 @@
+import {PcmAudio} from './audio.js';
 const dosboxConf = `[sdl]\nfullscreen=false\n[dosbox]\nmachine=svga_s3\nmemsize=16\n[cpu]\ncore=auto\ncycles=fixed 6000\n[mixer]\nrate=22050\nblocksize=1024\nprebuffer=30\n[sblaster]\nsbtype=sb16\n[autoexec]\n@echo off\nmount c .\nc:\ncd SIMANT~1\nsimant.exe\n`;
 
 export class DosGame {
   constructor(canvas, status) {
     this.canvas=canvas; this.status=status; this.context=canvas.getContext('2d',{alpha:false});
-    this.audio=null;this.nextAudio=0;this.nodes=new Set();this.muted=false;this.frameNumber=0;this.frameListeners=new Set();
+    this.audio=null;this.muted=false;this.frameNumber=0;this.frameListeners=new Set();
   }
   async start(savedFiles) {
-    this.audio=new AudioContext();
-    await this.audio.resume();
+    this.audio=new AudioContext({latencyHint:'playback'});
+    const resumed=this.audio.resume();
     this.audioStream=this.audio.createMediaStreamDestination();
+    this.pcm=new PcmAudio(this.audio,this.audioStream,{bufferSeconds:.3,maxSeconds:.8});
+    await Promise.all([resumed,this.pcm.init()]);this.pcm.setMuted(this.muted);
     const response=await fetch('game/simant.zip');
     if(!response.ok) throw new Error('The original SimAnt game files are missing.');
     const init=[new Uint8Array(await response.arrayBuffer())];
@@ -35,15 +38,8 @@ export class DosGame {
     this.status('Choose Quick Game, Full Game, or load your colony.');
     return this.ci;
   }
-  sound(samples) {
-    if(this.audio.state!=='running')return;
-    const buffer=this.audio.createBuffer(2,samples.length/2,this.ci.soundFrequency());
-    for(let c=0;c<2;c++){const channel=buffer.getChannelData(c);for(let i=0;i<channel.length;i++)channel[i]=samples[i*2+c];}
-    const now=this.audio.currentTime;
-    if(this.nextAudio<now||this.nextAudio>now+.3)this.nextAudio=now+.02;
-    const node=this.audio.createBufferSource();node.buffer=buffer;if(!this.muted)node.connect(this.audio.destination);node.connect(this.audioStream);this.nodes.add(node);
-    node.onended=()=>{node.disconnect();this.nodes.delete(node);};
-    node.start(this.nextAudio);this.nextAudio+=buffer.duration;
-  }
-  async close(){await this.ci?.exit();for(const node of this.nodes)node.stop();this.nodes.clear();await this.audio?.close();}
+  get muted(){return this._muted||false;}
+  set muted(value){this._muted=!!value;this.pcm?.setMuted(this._muted);}
+  sound(samples){this.pcm?.push(samples,this.ci.soundFrequency());}
+  async close(){await this.ci?.exit();this.pcm?.close();await this.audio?.close();}
 }
